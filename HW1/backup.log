@@ -1,0 +1,22 @@
+=== Sat Nov  1 17:46:19 MSK 2025 ===
+Резервное копирование из: ./
+В директорию: ./backups
+Копия: 1.txt -> ./backups/1.txt.2025-11-01.bak
+Копия: 2.md -> ./backups/2.md.2025-11-01.bak
+Копия: 3.info -> ./backups/3.info.2025-11-01.bak
+Копия: backup.log -> ./backups/backup.log.2025-11-01.bak
+Копия: backup.sh -> ./backups/backup.sh.2025-11-01.bak
+Копия: error.log -> ./backups/error.log.2025-11-01.bak
+Копия: input.txt -> ./backups/input.txt.2025-11-01.bak
+Копия: output.txt -> ./backups/output.txt.2025-11-01.bak
+Копия: task1.sh -> ./backups/task1.sh.2025-11-01.bak
+Копия: task2.sh -> ./backups/task2.sh.2025-11-01.bak
+Копия: task3.sh -> ./backups/task3.sh.2025-11-01.bak
+Копия: task4.sh -> ./backups/task4.sh.2025-11-01.bak
+Копия: task5.sh -> ./backups/task5.sh.2025-11-01.bak
+Копия: task6.sh -> ./backups/task6.sh.2025-11-01.bak
+Копия: task7-1.sh -> ./backups/task7-1.sh.2025-11-01.bak
+Копия: task7-2.sh -> ./backups/task7-2.sh.2025-11-01.bak
+Копия: task7-3.txt -> ./backups/task7-3.txt.2025-11-01.bak
+Всего файлов скопировано: 17
+
