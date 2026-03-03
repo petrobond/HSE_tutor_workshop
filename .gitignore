@@ -1,0 +1,33 @@
+# Input files
+.input/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.so
+.venv/
+venv/
+env/
+
+# Jupyter / Zeppelin
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+.env
+.env.local
+scripts/s3-credentials.env
+scripts/*-credentials*.env
