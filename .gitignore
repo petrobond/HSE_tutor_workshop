@@ -29,3 +29,5 @@ Thumbs.db
 *.pem
 .env
 .env.local
+scripts/s3-credentials.env
+scripts/*-credentials*.env

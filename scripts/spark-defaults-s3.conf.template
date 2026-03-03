@@ -1,0 +1,10 @@
+# Фрагмент для добавления в /opt/spark/conf/spark-defaults.conf на ВМ.
+# Подставить ACCESS_KEY_ID и SECRET_KEY (или сгенерировать через generate-spark-s3-conf.sh).
+
+# Yandex Object Storage (S3)
+spark.hadoop.fs.s3a.endpoint            https://storage.yandexcloud.net
+spark.hadoop.fs.s3a.path.style.access   true
+spark.hadoop.fs.s3a.access.key           <ACCESS_KEY_ID>
+spark.hadoop.fs.s3a.secret.key          <SECRET_KEY>
+spark.hadoop.fs.s3a.impl                org.apache.hadoop.fs.s3a.S3AFileSystem
+spark.hadoop.fs.s3a.connection.ssl.enabled true
