@@ -1,5 +1,5 @@
-# Cursor
-.cursor/
+# Input files
+.input/
 
 # Python
 __pycache__/
@@ -25,7 +25,7 @@ env/
 .DS_Store
 Thumbs.db
 
-# Secrets (never commit)
+# Secrets
 *.pem
 .env
 .env.local
