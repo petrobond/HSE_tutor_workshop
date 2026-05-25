@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Docker volumes
+postgres_data/
+minio_data/
+superset_data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Data (generated at runtime)
+data/
+*.parquet
+*.csv
+*.tmp
+
+# Superset
+superset.db
+superset_home/
+
+# Airflow
+airflow.db
+airflow-webserver.pid
+airflow.cfg
+logs/

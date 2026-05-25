@@ -1,0 +1,165 @@
+version: "3.8"
+
+services:
+  # ==================== PostgreSQL ====================
+  postgres:
+    image: postgres:15
+    container_name: hw2_postgres
+    environment:
+      POSTGRES_DB: oilfield
+      POSTGRES_USER: analyst
+      POSTGRES_PASSWORD: analyst_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analyst -d oilfield"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data_network
+
+  # ==================== MinIO (S3-compatible storage) ====================
+  minio:
+    image: minio/minio:latest
+    container_name: hw2_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web UI
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data_network
+
+  # ==================== JupyterHub ====================
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    container_name: hw2_jupyter
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      JUPYTER_TOKEN: "hse_token"
+      # MinIO credentials for boto3
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ENDPOINT_URL_S3: http://minio:9000
+    ports:
+      - "8000:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command: >
+      bash -c "
+      pip install --quiet psycopg2-binary sqlalchemy boto3 pyarrow scikit-learn plotly &&
+      start-notebook.sh --NotebookApp.token='hse_token' --NotebookApp.password=''
+      "
+    networks:
+      - data_network
+
+  # ==================== Apache Superset ====================
+  superset:
+    image: apache/superset:latest
+    container_name: hw2_superset
+    environment:
+      SUPERSET_SECRET_KEY: "hse_superset_secret_key_change_me"
+      SUPERSET_LOAD_EXAMPLES: "no"
+      SUPERSET_ENV: "production"
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_data:/app/superset_home
+      - ./superset/dashboards:/app/dashboards
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command: >
+      bash -c "
+      pip install --quiet -t /app/.venv/lib/python3.10/site-packages psycopg2-binary sqlalchemy &&
+      superset db upgrade &&
+      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@hse.ru --password admin &&
+      superset init &&
+      superset run -h 0.0.0.0 -p 8088 --with-threads --reload --debugger
+      "
+    networks:
+      - data_network
+
+  # ==================== Airflow (Advanced — 10 points) ====================
+  airflow-webserver:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: hw2_airflow_webserver
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://analyst:analyst_pass@postgres:5432/oilfield
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "hse_airflow_secret_key"
+      # MinIO credentials for hooks
+      AIRFLOW_CONN_MINIO_DEFAULT: '{"conn_type":"aws","extra":{"endpoint_url":"http://minio:9000","aws_access_key_id":"minioadmin","aws_secret_access_key":"minioadmin"}}'
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@hse.ru --password admin &&
+      pip install --quiet psycopg2-binary boto3 pyarrow pandas scikit-learn &&
+      airflow webserver -p 8080
+      "
+    networks:
+      - data_network
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: hw2_airflow_scheduler
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://analyst:analyst_pass@postgres:5432/oilfield
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "hse_airflow_secret_key"
+      AIRFLOW_CONN_MINIO_DEFAULT: '{"conn_type":"aws","extra":{"endpoint_url":"http://minio:9000","aws_access_key_id":"minioadmin","aws_secret_access_key":"minioadmin"}}'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "
+      pip install --quiet psycopg2-binary boto3 pyarrow pandas scikit-learn &&
+      airflow scheduler
+      "
+    networks:
+      - data_network
+
+volumes:
+  postgres_data:
+  minio_data:
+  superset_data:
+
+networks:
+  data_network:
+    driver: bridge
