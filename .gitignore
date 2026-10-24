@@ -31,3 +31,6 @@ Thumbs.db
 .env.local
 scripts/s3-credentials.env
 scripts/*-credentials*.env
+
+# Docs
+HW2627-final-1/docs/
